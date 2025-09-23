@@ -7,5 +7,5 @@ def home(req):
 def register(req):
     return render(req,'register.html',{})
 
-def todo(req):
-    return render(req,'todo.html',{})
+def login(req):
+    return render(req,'login.html',{})
