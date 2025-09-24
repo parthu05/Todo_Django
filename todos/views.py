@@ -4,10 +4,18 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from .models import todo
 
 
 @login_required(login_url='/login')
-def home(req):
+def home(req): 
+    if req.method == 'POST':
+        task = req.POST.get('task')
+        new_todo = todo(user=req.user, todo_name=task)
+        new_todo.save()
+
+        all_todos = todo.objects.filter(user=req.user)
+        return render(req, 'home.html', {'todos': all_todos})
     return render(req, 'home.html', {})
 
 
@@ -64,3 +72,16 @@ def login_view(req):
             messages.error(req, "Invalid credentials")
             return redirect('login')
     return render(req, 'login.html', {})
+
+@login_required(login_url='/login')
+def logout_view(req):
+    logout(req)
+    messages.success(req, "Logged out successfully")
+    return redirect('login')
+
+@login_required
+def DeleteTask(request, name):
+    get_todo = todo.objects.get(user=request.user, todo_name=name)
+    get_todo.delete()
+    return redirect('home-page')
+
