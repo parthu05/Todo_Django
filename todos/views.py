@@ -4,19 +4,20 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
-from .models import todo
+from .models import Todo
 
 
 @login_required(login_url='/login')
 def home(req): 
     if req.method == 'POST':
         task = req.POST.get('task')
-        new_todo = todo(user=req.user, todo_name=task)
-        new_todo.save()
+        if task:
+            new_todo = Todo(user=req.user, todo_name=task)
+            new_todo.save()
+        return redirect('home')
 
-        all_todos = todo.objects.filter(user=req.user)
-        return render(req, 'home.html', {'todos': all_todos})
-    return render(req, 'home.html', {})
+    all_todos = Todo.objects.filter(user=req.user)
+    return render(req, 'home.html', {'todos': all_todos})
 
 
 def register(req):
@@ -73,15 +74,27 @@ def login_view(req):
             return redirect('login')
     return render(req, 'login.html', {})
 
-@login_required(login_url='/login')
+@login_required()
 def logout_view(req):
     logout(req)
     messages.success(req, "Logged out successfully")
     return redirect('login')
 
-@login_required
-def DeleteTask(request, name):
-    get_todo = todo.objects.get(user=request.user, todo_name=name)
-    get_todo.delete()
-    return redirect('home-page')
+@login_required()
+def DeleteTask(req, id):
+    get_todo = Todo.objects.filter(user=req.user, id = id).first()
+    if get_todo:
+        get_todo.delete()
+    else:
+        messages.error(req, "Task not found")
+    return redirect('home')
 
+@login_required()
+def finish_task(req, id):
+    todo_item = Todo.objects.filter(user = req.user,id=id).first()
+    if todo_item:
+        todo_item.status = True
+        todo_item.save()
+    else:
+        messages.error(req, "Task not found")
+    return redirect('home')
