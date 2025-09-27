@@ -21,6 +21,8 @@ def home(req):
 
 
 def register(req):
+    if req.user.is_authenticated:
+        return redirect('home')
     if req.method == 'POST':
         username = req.POST.get('username')
         email = req.POST.get('email')
@@ -56,6 +58,8 @@ def register(req):
 
 
 def login_view(req):
+    if req.user.is_authenticated:
+        return redirect('home')
     if req.method == 'POST':
         username = req.POST.get('username')
         password = req.POST.get('password')
@@ -98,3 +102,6 @@ def finish_task(req, id):
     else:
         messages.error(req, "Task not found")
     return redirect('home')
+
+def navbar(req):
+    return render(req, 'navbar.html', {})
